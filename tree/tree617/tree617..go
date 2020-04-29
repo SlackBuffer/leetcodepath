@@ -6,7 +6,8 @@ type TreeNode struct {
 	Right *TreeNode
 }
 
-func mergeTrees(t1 *TreeNode, t2 *TreeNode) *TreeNode {
+// 纯递归
+func mergeTrees(t1, t2 *TreeNode) *TreeNode {
 	if t1 == nil && t2 == nil {
 		return nil
 	}
@@ -29,6 +30,64 @@ func mergeTrees(t1 *TreeNode, t2 *TreeNode) *TreeNode {
 	t1.Right = mergeTrees(t1.Right, t2.Right)
 	return t1
 }
+
+// peek
+func mergeTrees2(t1, t2 *TreeNode) *TreeNode {
+	if t1 == nil && t2 == nil {
+		return nil
+	}
+	if t1 == nil {
+		return t2 // * 全部继承过来
+	}
+	if t2 == nil {
+		return t1 // * 全部继承过来
+	}
+	return &TreeNode{
+		Val:   t1.Val + t2.Val,
+		Left:  mergeTrees(t1.Left, t2.Left),
+		Right: mergeTrees(t1.Right, t2.Right),
+	}
+}
+
+// 栈；原位更改 t1 树；递归地先 Right 后 Left
+// peak
+func mergeTrees3(t1, t2 *TreeNode) *TreeNode {
+	if t1 == nil {
+		return t2
+	}
+	type step [2]*TreeNode
+	// var stack []step
+	// stack = append(stack, [2]*TreeNode{t1, t2})
+	// stack := []step{[2]*TreeNode{t1, t2}}
+	stack := []step{step{t1, t2}}
+	for len(stack) > 0 {
+		t := stack[len(stack)-1]
+		stack = stack[:len(stack)-1] // * pop
+
+		if t[0] == nil || t[1] == nil {
+			continue
+		}
+
+		t[0].Val += t[1].Val
+
+		if t[0].Left == nil {
+			t[0].Left = t[1].Left // * 全部继承过来，不入栈
+		} else {
+			stack = append(stack, step{t[0].Left, t[1].Left})
+		}
+
+		if t[0].Right == nil {
+			t[0].Right = t[1].Right // * 全部继承过来，不入栈
+		} else {
+			stack = append(stack, step{t[0].Right, t[1].Right})
+		}
+	}
+	return t1
+}
+
+// Time complexity : O(m). A total of m nodes need to be traversed. Here, m represents the **minimum** number of nodes from the two given trees.
+
+// Space complexity : O(m). The depth of the recursion tree can go upto m in the case of a skewed tree. In average case, depth will be O(logm).
 
 func isEqual(s1, s2 []int) bool {
 	if len(s1) != len(s2) {
